@@ -15,6 +15,7 @@
 .block-right {
   width: 50%;
   height: 100%;
+ background-color: #070606;
   position: relative;
   display: table;
   > div {
@@ -86,14 +87,14 @@ canvas {
     }
   }
   &:hover {
-    border-color: $green;
+    border-color: #D33017;
     &:before {
-      border-color: $green;
+      border-color:  #D33017;
     }
     span {
-      border-color: $green;
+      border-color:  #D33017;
       &:before {
-        border-color: $green;
+        border-color:  #D33017;
       }
     }
   }
@@ -131,10 +132,10 @@ canvas {
     background: $white;
   }
   &:hover {
-    border-color: $green;
+    border-color:  #E34B33;
     &:before,
     &:after {
-      border-color: $green;
+      border-color:  #E34B33;
     }
   }
 }
@@ -354,7 +355,7 @@ canvas {
         left: 0;
         right: 0;
         bottom: 0;
-        background: $green;
+        background: $red;
         -webkit-transform: scaleY(0);
         transform: scaleY(0);
         -webkit-transform-origin: 50% 100%;
@@ -389,7 +390,7 @@ canvas {
 }
 
 .main-info {
-  color: $white;
+  color: #E34B33;
   h1 {
     font-weight: bold;
     text-transform: uppercase;
@@ -421,7 +422,7 @@ canvas {
       -ms-transform: none;
       -o-transform: none;
       transform: none;
-      background: $green;
+      background: $red;
       left: 0;
       width: 200px;
     }
@@ -495,7 +496,7 @@ canvas {
       color: darken($white, 40);
     }
     .date {
-      color: #399f62;
+      color: #E34B33;
       float: right;
       display: inline-block;
       font-size: 15px;
@@ -506,7 +507,7 @@ canvas {
       display: inline-block;
       max-width: 75%;
       &:hover span {
-        border-bottom: 1px dotted $green;
+        border-bottom: 1px solid darken($white, 8.2353);
       }
     }
   }
@@ -564,8 +565,8 @@ canvas {
     display: block;
   }
   a:not(.btn):not(.pagination_pager) {
-    color: #399f62;
-    border-bottom: 1px dotted $green;
+    color:  #E34B33;
+    border-bottom: 1px dotted $red;
   }
   ul,
   ol {
@@ -602,7 +603,7 @@ canvas {
     font-size: 15px;
   }
   .section-line {
-    color: $green;
+    color:  #E34B33;
     position: relative;
     display: -webkit-box;
     display: -moz-box;
@@ -624,7 +625,7 @@ canvas {
       margin-left: 10px;
     }
     a {
-      color: $green;
+      color: $red;
       &:hover {
         color: #4dbe7a;
       }
@@ -856,7 +857,7 @@ canvas {
       border-radius: 0 4px 4px 0;
     }
     &:hover {
-      background-color: $green;
+      background-color: $red;
       color: $white !important;
     }
     &.disabled {
